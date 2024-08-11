@@ -1,0 +1,46 @@
+
+
+- name: Set default shell to ZSH for alan
+  user:
+    name: alan
+    shell: /usr/bin/zsh
+
+- name: Set default shell to ZSH for root
+  user:
+    name: root
+    shell: /usr/bin/zsh
+
+- name: Install Oh My ZSH for alan 
+  get_url:
+    url: https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
+    dest: /tmp/oh-my-zsh.sh
+    mode: 0755  # Set appropriate permissions
+    force: true
+
+
+
+- name: Run Oh My ZSH installer for alan
+  user: "{{ item }}"
+  shell: /tmp/oh-my-zsh.sh --unattended  # Unattended installation (no prompts)
+  when: not os.path.exists("/home/alan/.oh-my-zsh")
+  with_items: ["root", "alan"]
+
+- name: Clone Powerlevel10k theme for alan (using HTTPS for security)
+  git:
+    repo: https://github.com/romkatv/powerlevel10k.git
+    dest: "{{ lookup('env', 'HOME') }}/.oh-my-zsh/custom/themes/powerlevel10k"  # Adjust if not using Oh My ZSH
+    update: no  # Avoid unnecessary updates during subsequent runs
+
+#- name: Copy example ZSH configuration for alan (optional)
+#  copy:
+#    src: /tmp/powerlevel10k/examples/ ~/.zshrc  # Adjust source if needed
+#    dest: /home/alan/.zshrc  # Use specific home directory for "alan"
+#    mode: 0644
+
+- name: Reload ZSH configuration for alan (optional)
+  #sudo: no  # Not needed as become is already set
+  command: su - alan -c "source ~/.zshrc"  # Source .zshrc as "alan" user
+
+- name: Verify Powerlevel10k installation for alan (optional)
+  debug:
+    msg: "Powerlevel10k theme installed and configured for user alan (source ~/.zshrc to activate)"

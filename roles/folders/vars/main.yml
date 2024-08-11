@@ -1,0 +1,19 @@
+---
+mnt: /mnt
+doumentos: sda1
+ssd_500gb: sdb1
+tplink-share: tplink-share
+borg: borg_home
+files: FILES
+settings: CRITICAL_SETTINGS
+DOCUMENTOS: DOCUMENTOS
+CSI_SRVs: CSI_SRVs
+
+
+
+
+
+
+
+
+

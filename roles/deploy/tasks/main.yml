@@ -1,0 +1,138 @@
+---
+
+- name: Install ansible
+  pip:
+    name: "ansible" 
+  become: yes
+
+- name: Install Docker SDK for Python
+  pip:
+    name: "docker>=5.0.0" 
+  become: yes
+
+- name: Setup more docker dependencies
+  pip:
+    name: "websocket-client" 
+  become: yes
+
+- name: clean docker garbage
+  shell: |
+    docker ps -aq | xargs docker stop | xargs docker rm
+    docker volume prune -f
+    docker swarm leave --force
+    docker rm glances portainer
+    docker volume create portainer_data
+    service docker restart
+
+- name: create portainer container
+  shell: |
+    docker run -d -p 8000:8000 -p 9443:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce:latest
+    docker swarm init
+
+- name: create glances container
+  shell: |
+    docker pull nicolargo/glances:latest-full
+    docker stop glances
+    docker rm glances
+    docker run -d --restart="always" -p 61208-61209:61208-61209 --name glances -e GLANCES_OPT="-w" -v /var/run/docker.sock:/var/run/docker.sock:ro --pid host nicolargo/glances:latest-full
+
+
+
+#- name: Restart docker
+#  systemd:
+#    name: docker # not required. Name of the service. This parameter takes the name of exactly one service to work with. When using in a chroot environment you always need to specify the full name i.e. (crond.service).
+#    state: reloaded # not required. choices: reloaded;restarted;started;stopped. C(started)/C(stopped) are idempotent actions that will not run commands unless necessary. C(restarted) will always bounce the service. C(reloaded) will always reload.
+#    enabled: yes 
+#    force: yes # not required. Whether to override existing symlinks.
+
+#    daemon_reload: true # not required. Run daemon-reload before doing any other operations, to make sure systemd has read any changes. When set to C(yes), runs daemon-reload even if the module does not start or stop anything.
+
+#- name: Create portainer container
+#  docker_container:
+#    name: portainer
+#    image: portainer/portainer-ce:latest
+#    state: started
+#    recreate: yes
+#    restart_policy: always#
+
+#    published_ports:
+#      - "8000:8000"
+#      - "9443:9443"
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
+#      - portainer_data:/data
+#  tags: portainer1  
+#  ignore_errors: true
+
+#- name: Create portainer agent
+#  docker_container:
+#    name: portainer_agent
+#    image: portainer/agent:latest
+#    state: started
+#    recreate: yes
+#    restart_policy: always
+#    published_ports:
+#      - "9001:9001"
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
+#      - /var/lib/docker/volumes:/var/lib/docker/volumes
+#  tags: portainer2    
+#  ignore_errors: true
+
+- name: Create portainer agent network
+  docker_network:
+    name: portainer_agent_network
+    driver: overlay
+    attachable: yes
+
+- name: Deploy monitor agent
+  docker_swarm_service:
+    name: portainer_agent
+    image: portainer/agent
+    mode: global
+    publish:
+      - mode: host
+        target_port: 9001
+        published_port: 9001
+    env:
+      AGENT_CLUSTER_ADDR: tasks.portainer_agent
+#      AGENT_SECRET: "{{ lookup('env', 'PORTAINER_SECRET') | default('', true) }}"  Csiway!2019!
+      AGENT_SECRET: 'Csiway!2019!'
+    networks:
+      - portainer_agent_network
+    mounts:
+      - source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        type: bind
+      - source: /var/lib/docker/volumes
+        target: /var/lib/docker/volumes
+        type: bind
+
+- name: Restart docker
+  systemd:
+    name: docker # not required. Name of the service. This parameter takes the name of exactly one service to work with. When using in a chroot environment you always need to specify the full name i.e. (crond.service).
+    state: reloaded # not required. choices: reloaded;restarted;started;stopped. C(started)/C(stopped) are idempotent actions that will not run commands unless necessary. C(restarted) will always bounce the service. C(reloaded) will always reload.
+    enabled: yes 
+    force: yes # not required. Whether to override existing symlinks.
+
+    daemon_reload: true # not required. Run daemon-reload before doing any other operations, to make sure systemd has read any changes. When set to C(yes), runs daemon-reload even if the module does not start or stop anything.
+
+
+
+#- name: Create Glances
+#  docker_container:
+#    name: glances
+#    image: nicolargo/glances:latest-full
+#    state: started
+#    recreate: yes
+#    restart_policy: always
+#    pid_mode: host
+#    env: 
+#      GLANCES_OPT: '-w'
+#    published_ports:
+#      -  61208-61209:61208-61209
+#    volumes: 
+#      -  /var/run/docker.sock:/var/run/docker.sock:ro 
+#      - glances_config:/glances/conf
+#  tags: glances    
+#  ignore_errors: true

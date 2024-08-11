@@ -1,0 +1,7 @@
+---
+
+- name: Set a hostname using variable
+  hostname:
+    name: '{{ hostname }}.{{ domain }}'
+    use: systemd
+  with_items: '{{ groups["deploy"] }}'

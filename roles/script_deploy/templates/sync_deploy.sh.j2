@@ -1,0 +1,20 @@
+#!/bin/bash
+new_deploy_fab="/root/fabrica/fabrica/infra/ambiente/deploy/deploy.tar.gz"
+dest="/root/projeto_"
+rootpath="/root/projeto_psv"
+name="gateway"
+
+# sync the deploy.tar.gz file
+rsync -avz ${new_deploy_fab} ${dest}${name}
+# change the current directory to the destination directory
+cd ${dest}${name}
+# extract the deploy.tar.gz file
+tar -xvf deploy.tar.gz  -C ..
+# remove the deploy.tar.gz file after extraction
+#rm -f deploy.tar.gz
+#move from  rootpath to pjctpath
+cd ~ && \cp -rfv ${rootpath}/. ${dest}${name}/.
+#cleanup
+rm -rf ${rootpath}
+
+

@@ -1,0 +1,26 @@
+---
+
+
+- name: Template a script to sync_deploy.sh
+  template:
+    src: '{{ template_file }}'
+    dest: '{{ sync_file }}'
+    owner: root
+    group: root
+    mode: '0777'
+    force: yes
+
+
+- name: run script to deploy new ambient
+  become: true
+  shell: 
+    "{{ sync_script }}"
+  args: 
+    chdir: /root  
+  register: script_out
+
+- name: "print script output"
+  debug:
+    msg: "{{ script_out }}"    
+
+

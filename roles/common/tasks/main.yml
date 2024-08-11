@@ -1,0 +1,259 @@
+---
+# COMMOM TASKS FOR ANY SIMPLE SERVER WITH DOCKER
+
+
+- name: Install msttcore-fonts
+  dnf:
+    name: https://downloads.sourceforge.net/project/mscorefonts2/rpms/msttcore-fonts-installer-2.6-1.noarch.rpm
+    state: present
+    sslverify: false
+    disable_gpg_check: true
+
+- name: Install DBeaver
+  dnf:
+    name: https://dbeaver.io/files/dbeaver-ce-latest-stable.x86_64.rpm
+    state: present
+    sslverify: false
+    disable_gpg_check: true    
+
+- name: openh264 enabling
+  shell: |
+    dnf config-manager --set-enabled fedora-cisco-openh264
+    dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+
+
+- name: dnf update
+  dnf:
+    name: '*'
+    state: latest
+    update_cache: yes
+  ignore_errors: true
+
+
+- name: install packages
+  dnf:
+    name: 
+      - vim
+      - git
+      - git-lfs
+      - java-latest-openjdk
+      - unzip
+      - p7zip 
+      - p7zip-plugins 
+      - unrar
+      - 'google-roboto*'
+      - 'mozilla-fira*'
+      - fira-code-fonts
+      - dnf5
+      - dnf5-plugins
+      - google-chrome-stable
+      - rpmconf
+      - input-leap
+      - code
+      - partclone
+      - timeshift
+      - bleachbit.noarch
+      - bat
+      - ripgrep
+      - "@Development Tools"
+      - kernel-headers 
+      - kernel-devel
+      - cabextract
+      - xorg-x11-font-utils
+      - fontconfig
+      - dkms
+      - elfutils-libelf-devel 
+      - qt5-qtx11extras
+      - keepassxc
+      - mpv 
+      - mpv-libs
+      - dnf-plugins-core
+      - mc 
+      - bpytop
+      - inxi
+      - ncdu
+      - tmux
+      - neofetch
+      - qbittorrent
+      - solaar.noarch
+      - solaar-udev.noarch
+      - gimp
+      - openfortivpn 
+      - esmtp-local-delivery
+      - moreutils
+      - hdparm
+      - grsync
+      - borgbackup
+      - syncthing
+      - qbittorrent
+      - ncdu
+      - bpytop
+      - wireshark
+      - samba
+      - timeshift
+      - easyeffects
+      - virt-viewer
+      - cheat
+      - nmap
+      - jq
+      - skopeo
+      - hping3
+      - nmstate
+      - yum-utils
+      - mlocate
+      - zip
+      - unzip
+      - curl
+      - scl-utils
+      - wget
+      - tree
+      - nfs-utils
+      - net-tools
+      - rsync
+      - python3
+      - python3-pip
+      - python3-jmespath
+      - libsemanage-python3
+      - python3-cryptography
+      - policycoreutils-python3
+      - zsh
+      - dnf-plugins-core
+      - yq
+
+- name: Remove ffmpeg-free
+  dnf:
+    name:  ffmpeg-free
+    state: absent
+  tags: 
+    - remove
+
+- name: Swap ffmpeg-free for ffmpeg
+  dnf:
+    name: ffmpeg
+    exclude: [ffmpeg-free, rpmfusion-free-updates] 
+    allowerasing: yes  
+    state: latest
+    update_cache: yes
+  tags: 
+    - ffmpeg
+
+
+- name: Update multimedia and sound & video packages (excluding PackageKit)
+  dnf:
+    name:
+      - "@multimedia"
+      - "@sound-and-video"
+      - ffmpeg-libs
+      - gstreamer1-plugin-openh264
+      - gstreamer1-libav 
+      - lame*
+      - openh264
+      - mozilla-openh264
+    install_weak_deps: False
+    state: latest
+  tags:
+    - mm
+
+
+- name: Install ZSH completions
+  dnf:
+    name: zsh-completions
+    state: present
+  tags: 
+    - zsh1  
+
+
+- name: Set default shell to ZSH for root user
+  user:
+    name: root  # Use the current user
+    shell: /usr/bin/zsh
+  tags:
+    - zsh2
+
+- name: Set default shell to ZSH for alan user
+  user:
+    name: alan  # Use the current user
+    shell: /usr/bin/zsh
+  tags:
+    - zsh3  
+
+
+- name: install docker and more packages
+  dnf:
+    name: 
+      - docker-ce 
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+      - screen   
+      - lsof
+      - htop
+      - tmux
+      - hplip
+      - hplip-gui
+
+- name: start docker service
+  systemd:
+    name:  docker.service 
+    state: started 
+    enabled: yes 
+
+- name: Install docker-compose
+  shell: |
+    curl -L "https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep '\"tag_name\":' | sed -E 's/.*\"([^\"]+)\".*/\1/')/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    chmod +x /usr/local/bin/docker-compose
+
+- name: sysctl ip foward settings 
+  sysctl:
+      name: "{{ item.name }}"
+      value: "{{ item.value }}"
+      state: present
+      sysctl_set: yes
+      reload: yes
+  with_items:
+    - { name: 'net.ipv4.ip_forward', value: '1' }
+#    - { name: 'net.ipv6.conf.all.forwarding', value: '1' }
+    - { name: 'net.ipv4.conf.all.send_redirects', value: '0' }
+
+- name: Create docker grp
+  group:
+    name: docker
+    state: present
+
+- name: add docker groups and python requests
+  shell: |
+    usermod -aG docker alan
+    pip3 install requests
+
+- name: Disable selinux
+  selinux:
+    state: disabled
+
+- name: permanently disable selinux
+  lineinfile:
+    path: /etc/selinux/config
+    regexp: '^SELINUX='
+    line: 'SELINUX=disabled'
+
+- name: disable firewalld
+  systemd:
+    name: firewalld.service
+    state: stopped
+    enabled: no
+
+- name: Download kubectl binary
+  get_url:
+    url: https://dl.k8s.io/release/{{ lookup('pipe', 'curl -sL https://dl.k8s.io/release/stable.txt') }}/bin/linux/amd64/kubectl
+    dest: //usr/local/bin/kubectl
+    mode: 0755  # Set appropriate permissions (optional)
+
+- name: Install vpn-slice with dependencies
+  pip:
+    name: "vpn-slice[dnspython,setproctitle]"
+    state: present
+
+
+
+
+

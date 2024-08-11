@@ -1,0 +1,65 @@
+
+
+
+- name: Add flathub repo
+  flatpak_remote:
+    name: flathub
+    state: present
+    flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
+    method: user
+
+- name: Update Flatpak repo
+  shell: |
+    flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+    flatpak remote-modify --no-filter flathub
+    flatpak update --appstream
+
+
+- name: Install EasyEffects
+  flatpak:
+    name: com.github.wwmm.easyeffects
+    state: present
+
+- name: Install Microsoft Teams
+  flatpak:
+    name: com.github.IsmaelMartinez.teams_for_linux
+    state: present
+
+- name: Install FreePlane
+  flatpak:
+    name: org.freeplane.App/x86_64/stable
+    state: present
+
+- name: Install PeaZip and its i386 addon
+  flatpak:
+    name:
+      - io.github.peazip.PeaZip
+      - io.github.peazip.PeaZip.Addon.i386
+    state: present
+
+- name: Install Draw.io
+  flatpak:
+    name: com.jgraph.drawio.desktop
+    state: present
+
+- name: Install Spotify
+  flatpak:
+    name: com.spotify.Client
+    state: present
+
+- name: Install Localsend
+  flatpak:
+    name: org.localsend.localsend_app
+    state: present
+
+- name: Install others
+  flatpak:
+    name:
+      - rest.insomnia.Insomnia
+      - org.remmina.Remmina
+      - org.localsend.localsend_app
+      - org.freedesktop.LinuxAudio.Plugins.ZamPlugins
+      - org.freedesktop.LinuxAudio.Plugins.MDA
+      - org.freedesktop.LinuxAudio.Plugins.LSP
+      - org.freedesktop.LinuxAudio.Plugins.Calf
+    state: present  

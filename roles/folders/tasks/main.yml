@@ -1,0 +1,22 @@
+---
+
+# PASTAS PARA MONTAGEM DO NAS
+- name: create NAS mount points
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  loop:
+    - '{{ mnt }}/{{ documentos }}'
+    - '{{ mnt }}/{{ ssd_500gb }}'
+    - '{{ mnt }}/{{ tplink-share }}'
+    - '{{ mnt }}/{{ borg }}'
+    - '{{ mnt }}/{{ files }}'
+    - '{{ mnt }}/{{ settings }}'
+    - '{{ mnt }}/{{ DOCUMENTOS }}'
+    - '{{ mnt }}/{{ CSI_SRVs }}'
+
+
+

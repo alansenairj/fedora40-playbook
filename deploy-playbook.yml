@@ -1,0 +1,17 @@
+### playbook testado no OL 8.6
+
+- hosts: deploy
+  gather_facts: true
+  become: yes
+  become_user: root
+  roles:
+    - { role: folders, message: "pastas do ambiente" }
+#    - { role: repos, message: "instalação dos repos" }
+#    - { role: set_hostname_srv_single, message: "hostname setting" }
+#    - { role: common, message: "instalação de pacotes" }
+ #   - { role: flatpak, message: "instalação de pacotes flatpak" }
+#    - { role: powerlevel, message: "instalação do powerlevel" }
+#    - { role: deploy, message: "deploy de containers para infra" }
+
+#    - { role: script_deploy, message: "script de cópia e extração dos arquivos do ambiente" }
+

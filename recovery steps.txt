@@ -1,0 +1,160 @@
+ 
+sudo dnf install ansible
+sudo dnf install sshpass
+setenforce 0
+sudo vi /etc/ssh/sshd_config
+
+port22
+permitrootlogin yes
+
+sudo systemctl restart sshd
+
+# apagar a chave para o ip 106 se tiver
+vi /home/alan/.ssh/known_hosts
+
+ansible-playbook deploy-playbook.yml -e ansible_ssh_pass=satan666
+
+# RECUPERAR FSTAB
+
+sudo rpm --import https://kopia.io/signing-key
+
+cat <<EOF | sudo tee /etc/yum.repos.d/kopia.repo
+[Kopia]
+name=Kopia
+baseurl=http://packages.kopia.io/rpm/stable/\$basearch/
+gpgcheck=1
+enabled=1
+gpgkey=https://kopia.io/signing-key
+EOF
+
+export PATH=$PATH:/home/alan/bin
+
+sudo dnf install kopia
+
+sudo dnf install kopia-ui
+
+sudo setcap cap_dac_read_search=+ep /opt/KopiaUI/resources/server/kopia
+
+FSTAB - adicionar o arquivo
+
+mkdir -p /mnt/{sda1,sdb1,tplink-share,borg_home,FILES,CRITICAL_SETTINGS,DOCUMENTOS,CSI_SRVs}
+mount -a
+systemctl daemon-reload
+
+
+yaml parser
+wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+chmod +x /usr/bin/yq
+
+[root@z390]/mnt# cat <<EOF >> /etc/samba/smb.conf
+[alan]
+   path = /home/alan
+        writeable = yes
+        browseable = yes
+        public = yes
+        create mask = 0644
+        directory mask = 0755
+        write list = user
+EOF
+[root@z390]/mnt#  systemctl enable smb --now
+Created symlink /etc/systemd/system/multi-user.target.wants/smb.service → /usr/lib/systemd/system/smb.service.
+[root@z390]/mnt# smbpasswd -a -n alan
+Added user alan.
+[root@z390]/mnt# systemctl restart smb
+[root@z390]/mnt# sudo systemctl enable NetworkManager-wait-online.service
+
+
+hp printer
+# Ligar no cabo USB a impressora primeiro
+
+
+# Abrir terminal
+
+sudo dnf install hplip hplip-gui
+sudo hp-setup 192.168.129.107
+
+
+vi /etc/gpservice/gp.conf
+
+
+[root@z390]/home/alan/Downloads/restore# \cp smb.conf /etc/samba
+[root@z390]/home/alan/Downloads/restore# systemctl enable smb --now
+[root@z390]/home/alan/Downloads/restore# smbpasswd -a -n alan
+User alan password set to none.
+[root@z390]/home/alan/Downloads/restore# systemctl restart smb
+
+
+[root@z390]/home/alan/Downloads/restore# cp alan /var/spool/cron
+[root@z390]/home/alan/Downloads/restore# cp root /var/spool/cron
+
+
+dnf install filezilla
+
+dnf install VirtualBox
+systemctl restart vboxdrv
+usermod -aG vboxusers $USER
+
+[root@z390]/home/alan/Downloads/restore# mv 5120x2880.png.old 5120x2880.png
+[root@z390]/home/alan/Downloads/restore# cp 5120x2880.png /usr/share/wallpapers/Next/contents/images/
+
+
+sudo dnf install obs-studio.x86_64
+
+clone repo: git clone https://github.com/ChesterYue/ohmyzsh-theme-passion;
+copy theme: cp ./ohmyzsh-theme-passion/passion.zsh-theme ~/.oh-my-zsh/themes/passion.zsh-theme;
+modify rc: open ~/.zshrc find ZSH_THEME edit to ZSH_THEME="passion";
+execute rc: source ~/.zshrc;
+
+
+vga
+
+dnf install akmod-nvidia
+dnf install xorg-x11-drv-nvidia-cuda
+systemctl enable nvidia-{suspend,resume,hibernate}
+
+dnf install xorg-x11-drv-nvidia-cuda-libs
+dnf install nvidia-vaapi-driver libva-utils vdpauinfo
+
+
+visudo
+alan ALL=(ALL)       NOPASSWD: ALL
+
+sudo timedatectl set-local-rtc 0
+
+sudo vi /etc/chrony.conf
+
+# servidores publicos do NTP.br com NTS disponível
+server a.st1.ntp.br iburst nts
+server b.st1.ntp.br iburst nts
+server c.st1.ntp.br iburst nts
+server d.st1.ntp.br iburst nts
+server gps.ntp.br iburst nts
+
+# erro máximo tolerado em ppm em relação aos servidores
+maxupdateskew 100.0
+
+sudo systemctl restart chronyd.service
+
+sudo dnf clean metadata
+
+
+flatpak remove Easy Effects
+remove from start
+sudo dnf install easyeffects
+sudo dnf install pipewire-plugin-libcamera.x86_64
+
+
+sudo dnf install rsync rsync-daemon
+
+
+cd /etc/polkit-1/localauthority/50-local.d/
+:>46-allow-update-repo.pkla
+vi 46-allow-update-repo.pkla
+
+[Allow Package Management all Users]
+Identity=unix-user:*
+Action=org.freedesktop.packagekit.system-sources-refresh
+ResultAny=yes
+ResultInactive=yes
+ResultActive=yes
+

@@ -1,0 +1,14 @@
+---
+hostname: gateway
+project_name: gateway
+sync_file: /root/sync_deploy.sh
+new_deploy_fab: /root/fabrica/fabrica/infra/ambiente/deploy/deploy.tar.gz 
+destination: /root/projeto_gateway/
+template_dir: /home/alan/CSI_SRVs/GATEWAY_ISH/roles/template
+template_file: sync_deploy.sh.j2
+
+
+
+
+
+
